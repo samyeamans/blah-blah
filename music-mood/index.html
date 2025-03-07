@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Mood Match</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Music Mood Match</h1>
+        <p class="subtitle">Find the perfect music based on your mood & favorite genre.</p>
+
+        <div class="navigation-tabs">
+            <a href="index.html" class="tab active">Music Match</a>
+        </div>
+
+        <div class="selection-box">
+            <div class="dropdown">
+                <label for="mood">Select Your Mood</label>
+                <select id="mood"></select>
+            </div>
+
+            <div class="dropdown">
+                <label for="genre">Pick a Genre</label>
+                <select id="genre"></select>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="getSong" class="btn">🎵 Get Song</button>
+            <button id="getPlaylist" class="btn">🎧 Get Playlist</button>
+        </div>
+
+        <div id="musicResult"></div>
+
+        <button id="nextButton" class="btn">Next</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
