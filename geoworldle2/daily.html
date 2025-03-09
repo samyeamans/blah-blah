@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        // Direct fix for Google Maps initialization issues in challenge.html
+        (function() {
+          // Override the initMaps function before it's called by the Google Maps API
+          window.originalInitMaps = window.initMaps;
+          
+          window.initMaps = function() {
+            // Check if we're on a page that should be refreshed on load
+            const shouldRefresh = (window.location.pathname.includes('challenge.html') || 
+                                  window.location.pathname.includes('daily.html'));
+            
+            // Check if this is a fresh load without a refresh parameter
+            if (shouldRefresh && !window.location.search.includes('refresh=')) {
+              // Add refresh parameter and reload
+              window.location.href = window.location.href.split('?')[0] + 
+                                    '?refresh=' + new Date().getTime();
+              return; // Stop execution to avoid errors during redirect
+            }
+            
+            // If we're refreshing with the parameter or on another page, proceed with original function
+            if (typeof window.originalInitMaps === 'function') {
+              window.originalInitMaps();
+            }
+            
+            // Add event listeners to all play again buttons after a delay
+            if (shouldRefresh) {
+              setTimeout(function() {
+                const restartButtons = document.querySelectorAll('#play-again, #closeSharePopup, #simpleCloseBtn');
+                restartButtons.forEach(function(button) {
+                  if (button) {
+                    button.addEventListener('click', function(e) {
+                      window.location.href = window.location.href.split('?')[0] + 
+                                            '?refresh=' + new Date().getTime();
+                    });
+                  }
+                });
+              }, 1000);
+            }
+          };
+          
+          // Fix for the placeholder image errors
+          document.addEventListener('DOMContentLoaded', function() {
+            // Replace problematic placeholder images
+            const placeholders = document.querySelectorAll('.street-view-placeholder, .map-placeholder');
+            placeholders.forEach(function(el) {
+              // Remove background image
+              el.style.backgroundImage = 'none';
+              // Set simple background color
+              el.style.backgroundColor = el.classList.contains('street-view-placeholder') 
+                                      ? '#f0f0f0' : '#e8f4f8';
+            });
+          });
+          
+          // Update Google Maps script to use async loading
+          document.addEventListener('DOMContentLoaded', function() {
+            // Fix the Google Maps loading warning by forcing the API script to load asynchronously
+            const scripts = document.getElementsByTagName('script');
+            for (let i = 0; i < scripts.length; i++) {
+              const script = scripts[i];
+              if (script.src && script.src.includes('maps.googleapis.com') && !script.async) {
+                // Get current src and save callback
+                const src = script.src;
+                const callback = src.includes('callback=') 
+                              ? src.split('callback=')[1].split('&')[0] 
+                              : 'initMaps';
+                
+                // Create new script element
+                const newScript = document.createElement('script');
+                newScript.src = src;
+                newScript.async = true;
+                
+                // Replace old script if possible
+                if (script.parentNode) {
+                  script.parentNode.replaceChild(newScript, script);
+                }
+              }
+            }
+          });
+        })();
+        </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Challenge - GeoWorlder</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Make the game interface visible by default on this page */
+        .game-interface {
+            display: block;
+            margin-top: 2rem;
+        }
+        
+        /* Game content layout */
+        .game-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        
+        .street-view, .map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (min-width: 992px) {
+            .game-content {
+                flex-direction: row;
+            }
+            
+            .street-view, .map-container {
+                width: 50%;
+            }
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 20, 32, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(56, 182, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Debug panel */
+        #debug-panel {
+            background-color: #121420;
+            color: #38b6ff;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            display: none;
+        }
+
+        /* Custom popup styling */
+        .custom-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--background);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            border: 2px solid var(--primary-color);
+            animation: popup-appear 0.3s ease-out forwards;
+            display: none;
+        }
+
+        @keyframes popup-appear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .custom-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .custom-popup-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .custom-popup-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .custom-popup-message {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .custom-popup-button {
+            background-color: var(--primary-color);
+            color: var(--background);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .custom-popup-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+       <!-- Updated Navigation -->
+       <nav class="main-nav">
+        <div class="logo">
+            <h1><span>Geo</span>Worlder</h1>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="daily.html">Daily</a>
+            <a href="challenge.html">Challenge</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="btn btn-feedback" id="feedback-btn">Feedback / Report Bugs</button>
+        </div>
+        <div class="mobile-menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+
+<!-- CSS styles to add to your styles.css file -->
+<style>
+.btn-feedback {
+    background-color: var(--primary-color);
+    color: var(--background);
+    border: none;
+    transition: all var(--transition-fast);
+}
+
+.btn-feedback:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+</style>
+
+<!-- JavaScript to add to your scripts.js file -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Feedback button click event
+    const feedbackBtn = document.getElementById('feedback-btn');
+    if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', function() {
+            // Option 1: Navigate to a feedback page
+            window.location.href = 'contact.html';
+            
+            // Option 2: Open a feedback modal (uncomment to use this instead)
+            // openFeedbackModal();
+        });
+    }
+});
+</script>
+
+        <!-- Daily Challenge Header -->
+        <section class="page-header">
+            <div class="header-container">
+                <div class="text-content">
+                    <div class="logo">
+                    <br> 
+                    <h1><span>Daily Worlder</span></h1>
+                    <p>Test your skills with today's mystery location.</p>
+                    <br> 
+                
+                        <h1><span>How To Play:</span></h1>
+                        <p>🌐 Every day there is a new random location</p>
+                        <p>🌐 Use the street view to look around and scroll to zoom in or out.</p>
+                        <p>🌐 Use the globe view to place your pin.</p>
+                        <p>🌐 Click "Make Guess" to lock in your location.</p>
+                        <p>🌐 You get three guesses to get as close as possible</p>
+                        <p>🌐 Tip: On the globe, hold command and scroll to zoom in our out. </p>
+                        <p>🌐 After the first two guesses, you will see how far your pin is from the mystery pin.</p>
+                        <br>
+                        <h1><span>Rules:</span></h1>
+                        <p>🌐 Don't be that person. Stay on this tab.</p>
+                
+                
+
+                        <p id="today-location-info"></p>
+                    </div>
+                </div>
+                <div style="position: absolute; top: 60px; right: 75px; width: 400px;">
+                    <img src="assets/GeoWorlder2.png" alt="GeoWorlder Logo" style="width: 100%; height: auto;">
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Interface -->
+        <section class="game-interface" id="game-interface">
+            <div class="game-header">
+                <h2 id="game-title">Daily Challenge</h2>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Guesses</span>
+                        <span class="stat-value" id="guess-count">0/3</span>
+                    </div>
+                    
+                    <div class="stat">
+                        <span class="stat-label">Best</span>
+                        <span class="stat-value" id="best-score">0 mi</span>
+                    </div>
+                </div>
+                <button class="btn btn-exit" id="exit-game">Exit</button>
+            </div>
+            <div class="game-content">
+                <div class="street-view" id="street-view">
+                    <!-- Street View will be inserted here -->
+                    <div class="loading-overlay">
+                        <div class="spinner"></div>
+                        <p>Loading Street View...</p>
+                    </div>
+                </div>
+                <div class="map-container" id="map-container">
+                    <!-- World Map will be inserted here -->
+                </div>
+            </div>
+            <div class="game-controls">
+                <button class="btn btn-guess" id="make-guess" disabled>Make Guess</button>
+            </div>
+            <div id="debug-panel"></div>
+        </section>
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2><span>Geo</span>Worlder</h2>
+                    <p>Test your geography knowledge one location at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Game</h3>
+                        <a href="daily.html">Daily Challenge</a>
+                        <a href="challenge.html">10 Location Challenge</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <a href="about.html">About Us</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <a href="terms.html">Terms of Service</a>
+                        <a href="privacy.html">Privacy Policy</a>
+                        <a href="cookies.html">Cookies</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GeoWorlder. All rights reserved.</p>
+                <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i> Back to Top</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Custom Popup Elements -->
+    <div class="custom-popup-overlay" id="popupOverlay"></div>
+    <div class="custom-popup" id="customPopup">
+        <div class="custom-popup-icon">
+            <i class="fas fa-map-marker-alt" id="popupIcon"></i>
+        </div>
+        <div class="custom-popup-title" id="popupTitle">Guess Result</div>
+        <div class="custom-popup-message" id="popupMessage">Your guess was X mi away.</div>
+        <button class="custom-popup-button" id="popupButton">Continue</button>
+    </div>
+
+    <script>
+        // Global variables
+        let map, panorama, guessMarker, actualPosition;
+        let guessCount = 0;
+        let bestGuessPosition = null;
+        let bestGuessDistance = Infinity;
+        let guesses = [];
+        let userGuessMarkers = []; // Array to store user guess markers for later clearing
+        
+        // Debug mode - set to true to see debugging info
+        const debugMode = false;
+        
+        // Debug log function
+        function log(message) {
+            console.log(message);
+            if (debugMode) {
+                const debugPanel = document.getElementById('debug-panel');
+                debugPanel.style.display = 'block';
+                debugPanel.innerHTML += message + '<br>';
+            }
+        }
+        
+        // Custom popup function
+        function showPopup(title, message, icon = 'fa-map-marker-alt', callback = null) {
+            const popupOverlay = document.getElementById('popupOverlay');
+            const customPopup = document.getElementById('customPopup');
+            const popupTitle = document.getElementById('popupTitle');
+            const popupMessage = document.getElementById('popupMessage');
+            const popupIcon = document.getElementById('popupIcon');
+            const popupButton = document.getElementById('popupButton');
+            
+            // Set content
+            popupTitle.textContent = title;
+            popupMessage.textContent = message;
+            
+            // Set icon
+            popupIcon.className = ''; // Clear previous classes
+            popupIcon.classList.add('fas', icon);
+            // Create text to copy - ensure it's always the best guess text
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const textToCopy = `🌎 My GeoWorlder best guess for ${dateStr} was ${Math.round(bestGuessDistance)} mi away! 🌎`;
+    
+    // Add copy button if it doesn't exist
+    let copyButton = document.getElementById('popupCopyButton');
+    if (!copyButton) {
+        copyButton = document.createElement('button');
+        copyButton.id = 'popupCopyButton';
+        copyButton.className = 'btn btn-copy';
+        copyButton.innerHTML = '<i class="fas fa-copy"></i> Share';
+        copyButton.style.marginRight = '10px'; // Add some spacing
+        
+        // Insert copy button before the close button
+        popupButton.parentNode.insertBefore(copyButton, popupButton);
+        
+        // Add copy functionality
+        copyButton.addEventListener('click', function() {
+            // Copy the best guess text to clipboard (not just the current message)
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(function() {
+                        // Show success feedback
+                        const originalText = copyButton.innerHTML;
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(function() {
+                            copyButton.innerHTML = originalText;
+                        }, 2000);
+                    })
+                    .catch(function(err) {
+                        console.error('Could not copy text: ', err);
+                        alert('Could not copy to clipboard. Try again.');
+                    });
+            } else {
+                // Fallback for browsers without clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                textArea.style.top = '0';
+                document.body.appendChild(textArea);
+                
+                try {
+                    textArea.focus();
+                    textArea.select();
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        const originalText = copyButton.innerHTML;
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(function() {
+                            copyButton.innerHTML = originalText;
+                        }, 2000);
+                    } else {
+                        alert('Could not copy to clipboard. Try again.');
+                    }
+                } catch (err) {
+                    console.error('execCommand error:', err);
+                    alert('Could not copy to clipboard. Try again.');
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        });
+    } else {
+        // Update the copy button's data if it already exists
+        copyButton.setAttribute('data-copy-text', textToCopy);
+    }
+    
+            // Show popup
+            popupOverlay.style.display = 'block';
+            customPopup.style.display = 'block';
+            
+            // Button click event
+            popupButton.onclick = function() {
+                // Hide popup
+                popupOverlay.style.display = 'none';
+                customPopup.style.display = 'none';
+                let copyButton = document.getElementById('popupCopyButton');
+    if (!copyButton) {
+        copyButton = document.createElement('button');
+        copyButton.id = 'popupCopyButton';
+        copyButton.className = 'btn btn-copy';
+        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        copyButton.style.marginRight = '10px'; // Add some spacing
+        popupButton.parentNode.insertBefore(copyButton, popupButton);
+        copyButton.addEventListener('click', function() {
+            // Copy message text to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(message)
+                    .then(function() {
+                        // Show success feedback
+                        const originalText = copyButton.innerHTML;
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(function() {
+                            copyButton.innerHTML = originalText;
+                        }, 2000);
+                    })
+                    .catch(function(err) {
+                        console.error('Could not copy text: ', err);
+                        alert('Could not copy to clipboard. Try again.');
+                    });
+            } else {
+                // Fallback for browsers without clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = message;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                textArea.style.top = '0';
+                document.body.appendChild(textArea);
+                
+                try {
+                    textArea.focus();
+                    textArea.select();
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        const originalText = copyButton.innerHTML;
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(function() {
+                            copyButton.innerHTML = originalText;
+                        }, 2000);
+                    } else {
+                        alert('Could not copy to clipboard. Try again.');
+                    }
+                } catch (err) {
+                    console.error('execCommand error:', err);
+                    alert('Could not copy to clipboard. Try again.');
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        });
+    }
+    
+
+                // Execute callback if provided
+                if (callback && typeof callback === 'function') 
+                    callback();
+                }
+            };
+        
+        
+        // Dataset with coordinates for each day of the year
+        // Format: "MM-DD": { lat: latitude, lng: longitude, name: "Location Name" }
+        const dailyLocations = {
+            "03-07": { lat: 48.8752, lng: 2.3469, name: "Residential neighborhood in Paris, France" },
+            "03-08": { lat: -33.9145, lng: 18.4081, name: "Street in Cape Town, South Africa" },
+            "03-09": { lat: -33.9145, lng: 18.4081, name: "Street in Cape Town, South Africa" },
+            "03-10": { lat: 47.6205, lng: -122.3493, name: "Seattle neighborhood, USA" },
+            "03-11": { lat: 35.0116, lng: 135.7681, name: "Street in Kyoto, Japan" },
+            "03-12": { lat: 22.3193, lng: 114.1694, name: "Hong Kong street scene" },
+            "03-13": { lat: 45.5017, lng: -73.5673, name: "Montreal suburb, Canada" },
+            "03-14": { lat: -34.6037, lng: -58.3816, name: "Buenos Aires neighborhood, Argentina" },
+            
+            // Week 3: March 15-21 (Random urban and semi-rural locations)
+            "03-15": { lat: 37.9838, lng: 23.7275, name: "Athens side street, Greece" },
+            "03-16": { lat: 40.4168, lng: -3.7038, name: "Madrid residential area, Spain" },
+            "03-17": { lat: 51.4545, lng: -2.5879, name: "Bristol street, UK" },
+            "03-18": { lat: 34.0195, lng: -118.4912, name: "Los Angeles suburb, USA" },
+            "03-19": { lat: 59.3293, lng: 18.0686, name: "Stockholm district, Sweden" },
+            "03-20": { lat: -36.8485, lng: 174.7633, name: "Auckland neighborhood, New Zealand" },
+            "03-21": { lat: 25.2048, lng: 55.2708, name: "Dubai residential area, UAE" },
+            
+            // Week 4: March 22-28 (Even more random global locations)
+            "03-22": { lat: 41.0082, lng: 28.9784, name: "Istanbul neighborhood, Turkey" },
+            "03-23": { lat: 19.4326, lng: -99.1332, name: "Mexico City street, Mexico" },
+            "03-24": { lat: 50.0755, lng: 14.4378, name: "Prague neighborhood, Czech Republic" },
+            "03-25": { lat: 53.3498, lng: -6.2603, name: "Dublin suburb, Ireland" },
+            "03-26": { lat: 28.6139, lng: 77.2090, name: "Delhi street, India" },
+            "03-27": { lat: 37.5665, lng: 126.9780, name: "Seoul neighborhood, South Korea" },
+            "03-28": { lat: 31.2304, lng: 121.4737, name: "Shanghai street, China" },
+            
+            // Last days of March (Truly random locations with Street View coverage)
+            "03-29": { lat: 35.6762, lng: 139.6503, name: "Tokyo residential area, Japan" },
+            "03-30": { lat: 43.7102, lng: 7.2620, name: "Street in Nice, France" },
+            "03-31": { lat: 41.8781, lng: -87.6298, name: "Chicago neighborhood, USA" }
+        };
+        
+        
+        // Get today's location from the dataset
+        function getTodaysLocation() {
+            const today = new Date();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateKey = `${month}-${day}`;
+            
+            log(`Getting location for date: ${dateKey}`);
+            
+            if (dailyLocations[dateKey]) {
+                // If debugging, show the location name
+                if (debugMode) {
+                    document.getElementById('today-location-info').textContent = 
+                        `Today's location: ${dailyLocations[dateKey].name}`;
+                }
+                return dailyLocations[dateKey];
+            } else {
+                // Fallback to a default location if today's date isn't in the dataset
+                log("No location found for today, using default");
+                return { lat: 40.7580, lng: -73.9855, name: "Times Square, New York (Default)" };
+            }
+        }
+        
+        // Initialize the game
+        function initGame() {
+            log("Initializing game");
+            
+            // Reset game state
+            guessCount = 0;
+            bestGuessDistance = Infinity;
+            guesses = [];
+            userGuessMarkers = [];
+            
+            // Update UI
+            document.getElementById('guess-count').textContent = '0/3';
+            document.getElementById('best-score').textContent = '0 mi';
+            document.getElementById('make-guess').disabled = true;
+            
+            // Show loading overlay
+            document.querySelector('.loading-overlay').style.display = 'flex';
+            
+            // Initialize the map
+            map = new google.maps.Map(document.getElementById('map-container'), {
+                center: { lat: 0, lng: 0 },
+                zoom: 2,
+                streetViewControl: false,
+                fullscreenControl: false,
+                mapTypeControlOptions: {
+                    mapTypeIds: ['roadmap', 'satellite']
+                }
+            });
+            
+            // Add click event for guessing
+            map.addListener('click', function(event) {
+                placeGuessMarker(event.latLng);
+            });
+            
+            // Initialize the Street View panorama
+            panorama = new google.maps.StreetViewPanorama(
+                document.getElementById('street-view'),
+                {
+                    pov: { heading: 0, pitch: 0 },
+                    zoom: 1,
+                    addressControl: false,
+                    showRoadLabels: false,
+                    linksControl: false,        // Hide navigation arrows
+                    clickToGo: false,           // Prevent clicking to move
+                    disableDoubleClickZoom: false, // Allow double click to zoom
+                    scrollwheel: true,          // Allow scroll to zoom
+                    panControl: true,           // Allow looking around
+                    zoomControl: true,          // Show zoom controls
+                    fullscreenControl: false,
+                    enableCloseButton: false,
+                    motionTracking: false,      // Disable motion tracking
+                    motionTrackingControl: false // Hide motion tracking control
+                }
+            );
+            
+            // Initialize marker for guesses
+            guessMarker = new google.maps.Marker({
+                map: map,
+                visible: false,
+                icon: {
+                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                }
+            });
+            
+            // Get today's location and load it
+            const todaysLocation = getTodaysLocation();
+            log(`Today's location is: ${todaysLocation.name}`);
+            
+            // Load the Street View for today's location
+            loadStreetView(todaysLocation);
+        }
+        
+        // Load the Street View for a location
+        function loadStreetView(location) {
+            log(`Loading Street View for ${location.name}`);
+            
+            const streetViewService = new google.maps.StreetViewService();
+            
+            streetViewService.getPanorama({
+                location: location,
+                radius: 100,
+                source: google.maps.StreetViewSource.OUTDOOR
+            }, function(data, status) {
+                if (status === google.maps.StreetViewStatus.OK) {
+                    log("Street View found at exact coordinates");
+                    
+                    // Set panorama position and store actual position
+                    panorama.setPosition(data.location.latLng);
+                    actualPosition = data.location.latLng;
+                    // After setting the panorama position in loadStreetView:
+                    panorama.setOptions({
+                        linksControl: false,
+                        clickToGo: false,
+                        motionTracking: false,
+                        motionTrackingControl: false
+                    });
+                    
+                    // Set random heading
+                    const randomHeading = Math.floor(Math.random() * 360);
+                    panorama.setPov({
+                        heading: randomHeading,
+                        pitch: 0
+                    });
+                    
+                    // Hide loading overlay
+                    document.querySelector('.loading-overlay').style.display = 'none';
+                } else {
+                    log("No Street View at exact coordinates, trying with larger radius");
+                    
+                    // Try with a larger radius
+                    streetViewService.getPanorama({
+                        location: location,
+                        radius: 1000,
+                        source: google.maps.StreetViewSource.OUTDOOR
+                    }, function(data, status) {
+                        // Hide loading overlay
+                        document.querySelector('.loading-overlay').style.display = 'none';
+                        
+                        if (status === google.maps.StreetViewStatus.OK) {
+                            log("Street View found with larger radius");
+                            
+                            // Set panorama position and store actual position
+                            panorama.setPosition(data.location.latLng);
+                            actualPosition = data.location.latLng;
+                            
+                            // Set random heading
+                            const randomHeading = Math.floor(Math.random() * 360);
+                            panorama.setPov({
+                                heading: randomHeading,
+                                pitch: 0
+                            });
+                        } else {
+                            log("No Street View found, using fallback location");
+                            
+                            // Use a fallback location
+                            const fallback = { lat: 40.7580, lng: -73.9855 }; // Times Square
+                            panorama.setPosition(fallback);
+                            actualPosition = new google.maps.LatLng(fallback.lat, fallback.lng);
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Place a marker for the user's guess
+        function placeGuessMarker(location) {
+            log("Placing guess marker");
+            
+            // Place/move the marker
+            guessMarker.setPosition(location);
+            guessMarker.setVisible(true);
+            
+            // Enable the guess button
+            document.getElementById('make-guess').disabled = false;
+        }
+        
+        // Clear all previous markers from the map except the guess marker
+        function clearPreviousMarkers() {
+            // Remove all user guess markers from the map
+            userGuessMarkers.forEach(marker => {
+                marker.setMap(null);
+            });
+            
+            // Reset the array
+            userGuessMarkers = [];
+        }
+        
+        // Submit a guess
+        function submitGuess() {
+            log("Submitting guess");
+            
+            // Get the guess position
+            const guessPosition = guessMarker.getPosition();
+            
+            // Calculate distance
+            const distance = calculateDistance(guessPosition, actualPosition);
+            log(`Distance: ${distance} mi`);
+            
+            // Store the guess
+            guesses.push({
+                position: guessPosition,
+                distance: distance,
+                location: "Unknown Location" // You could use reverse geocoding here
+            });
+            const userGuessMarker = new google.maps.Marker({
+        position: guessPosition,
+        map: map,
+        icon: {
+            url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+        },
+        label: {
+            text: (guessCount + 1).toString(),
+            color: 'white'
+        }
+    });
+    userGuessMarkers.push(userGuessMarker);
+    
+            // Increment guess count
+            guessCount++;
+            document.getElementById('guess-count').textContent = `${guessCount}/3`;
+            
+            // Update best score
+            if (distance < bestGuessDistance) {
+                bestGuessDistance = distance;
+                bestGuessPosition = guessPosition; // Store the position of the best guess
+                document.getElementById('best-score').textContent = `${Math.round(bestGuessDistance)} mi`;
+            }
+            
+            // Reset for next guess
+            guessMarker.setVisible(false);
+            document.getElementById('make-guess').disabled = true;
+            
+            // Check if game is over (3 guesses)
+            if (guessCount >= 3) {
+                // Clear any previous markers
+                document.getElementById('make-guess').disabled = true;
+
+                // Only show the actual location after all 3 guesses
+                new google.maps.Marker({
+                    position: actualPosition,
+                    map: map,
+                    icon: {
+                        url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                    }
+                });
+                
+                // Show the final guess marker
+                const finalGuessMarker = new google.maps.Marker({
+                    position: guessPosition,
+                    map: map,
+                    icon: {
+                        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                    }
+                });
+                userGuessMarkers.push(finalGuessMarker);
+                
+                // Draw a line between guess and actual
+                new google.maps.Polyline({
+                    path: [bestGuessPosition, actualPosition],
+                    geodesic: true,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                    map: map
+                });
+                
+                // Fit bounds to show both markers
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(bestGuessPosition);
+                bounds.extend(actualPosition);
+                map.fitBounds(bounds);
+                
+                // Get current date in a readable format
+const today = new Date();
+const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+// Show game over popup
+showPopup(
+    `${Math.round(bestGuessDistance)} mi!`, 
+    `🌎 My GeoWorlder best guess for ${dateStr} was ${Math.round(bestGuessDistance)} mi away! 🌎`,
+    
+    "fa-trophy"
+    
+
+);
+google.maps.event.clearListeners(map, 'click');
+
+
+
+                
+            } else {
+                // For guesses 1 and 2, just show distance feedback without revealing location
+                // Clear previous markers first to avoid cluttering
+                
+                // Add a marker only for the user's guess, not the actual location
+                const userGuessMarker = new google.maps.Marker({
+                    position: guessPosition,
+                    map: map,
+                    icon: {
+                        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                    }
+                });
+                userGuessMarkers.push(userGuessMarker);
+                
+                // Show guess popup
+                showPopup(
+                    "Nice Guess!", 
+                    `Your guess was ${Math.round(distance)} mi away. You have ${3-guessCount} ${guessCount === 2 ? 'guess' : 'guesses'} remaining.`,
+                    "fa-map-marker-alt",
+                    function() {
+                        // Clear markers and reset the map view after closing popup
+                        map.setCenter({lat: 0, lng: 0});
+                        map.setZoom(2);
+                    }
+                );
+            }
+        }
+        
+        // Calculate distance in kilometers
+        function calculateDistance(p1, p2) {
+            function degToRad(deg) {
+                return deg * (Math.PI/180);
+            }
+            
+            const R = 3958.8; // Earth's radius in mi
+            const dLat = degToRad(p2.lat() - p1.lat());
+            const dLon = degToRad(p2.lng() - p1.lng());
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(degToRad(p1.lat())) * Math.cos(degToRad(p2.lat())) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            return distance;
+        }
+        
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make guess button
+            document.getElementById('make-guess').addEventListener('click', function() {
+                if (guessMarker && guessMarker.getVisible()) {
+                    submitGuess();
+                } else {
+                    showPopup("No Guess Made", "Please click on the map to place your guess first", "fa-exclamation-circle");
+                }
+            });
+            
+            // Exit button
+            document.getElementById('exit-game').addEventListener('click', function() {
+                showPopup("Exit Game?", "Are you sure you want to exit? Your progress will be lost.", "fa-question-circle", function() {
+                    window.location.href = 'index.html';
+                });
+            });
+        });
+        
+        // Initialize game when Google Maps API loads
+        function initMaps() {
+            log("Google Maps API loaded");
+            initGame();
+        }
+    </script>
+    <script>// Auto-refresh script for challenge.html
+        document.addEventListener('DOMContentLoaded', function() {
+          // Function to check if this is the challenge page
+          function isChallengeOrDailyPage() {
+            return window.location.pathname.includes('challenge.html') || 
+                   window.location.pathname.includes('daily.html');
+          }
+        
+          // Check if we're on the challenge page
+          if (isChallengeOrDailyPage()) {
+            // Check if this is a fresh visit or a replay request
+            const hasVisited = sessionStorage.getItem('pageVisited');
+            
+            // If this is a fresh visit (not from clicking the back button)
+            if (!hasVisited) {
+              // Set flag in session storage to prevent infinite refresh loops
+              sessionStorage.setItem('pageVisited', 'true');
+              
+              // Force a refresh with a cache-busting parameter
+              window.location.href = window.location.href.split('?')[0] + 
+                                      '?refresh=' + new Date().getTime();
+            } else {
+              // Clear the flag to ensure refreshes on new visits
+              sessionStorage.removeItem('pageVisited');
+            }
+            
+            // Add event listener to the Play Again button
+            const playAgainButtons = document.querySelectorAll('#play-again, #closeSharePopup, #simpleCloseBtn');
+            playAgainButtons.forEach(button => {
+              if (button) {
+                // Replace existing event listeners with our refresh function
+                button.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  e.stopPropagation(); // Stop any other event handlers
+                  
+                  // Force page reload with cache busting
+                  window.location.href = window.location.href.split('?')[0] + 
+                                        '?refresh=' + new Date().getTime();
+                }, true); // Use capturing to ensure our handler runs first
+              }
+            });
+            
+            // Also handle the next location button for the 10 location challenge
+            const nextLocationBtn = document.getElementById('next-location');
+            if (nextLocationBtn && window.location.pathname.includes('challenge.html')) {
+              // Override any existing click handlers for the final location
+              const originalClickHandler = nextLocationBtn.onclick;
+              nextLocationBtn.onclick = function(e) {
+                // If this is the last location (9th index = 10th location)
+                if (window.currentLocationIndex >= 9) {
+                  e.preventDefault();
+                  // After showing results, force refresh
+                  setTimeout(function() {
+                    window.location.href = window.location.href.split('?')[0] + 
+                                          '?refresh=' + new Date().getTime();
+                  }, 5000); // Give time for showing results
+                } else if (originalClickHandler) {
+                  // Otherwise execute original handler for regular location changes
+                  return originalClickHandler.apply(this, arguments);
+                }
+              };
+            }
+          }
+          
+          // Handle refresh when clicking any Play button on the home page
+          if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
+            const playButtons = document.querySelectorAll('#play-daily, #play-challenge, #daily-card .btn-mode, #challenge-card .btn-mode');
+            playButtons.forEach(button => {
+              if (button) {
+                const originalHref = button.getAttribute('onclick') || '';
+                if (originalHref.includes('window.location.href')) {
+                  // Extract the destination URL
+                  const match = originalHref.match(/window\.location\.href\s*=\s*['"]([^'"]+)['"]/);
+                  if (match && match[1]) {
+                    const destination = match[1];
+                    
+                    // Override with our function that clears session storage first
+                    button.onclick = function(e) {
+                      e.preventDefault();
+                      // Clear any previous visit flags
+                      sessionStorage.removeItem('pageVisited');
+                      // Navigate to the destination
+                      window.location.href = destination;
+                    };
+                  }
+                }
+              }
+            });
+          }
+          
+          // Handle page visibility changes (for when user tabs away and comes back)
+          document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && isChallengeOrDailyPage()) {
+              // If the game is over, we want to refresh when user returns
+              const gameEnded = (window.guessCount >= 3 && window.location.pathname.includes('daily.html')) || 
+                                (window.currentLocationIndex >= 9 && window.location.pathname.includes('challenge.html'));
+              
+              if (gameEnded) {
+                // Force reload with cache busting
+                window.location.href = window.location.href.split('?')[0] + 
+                                      '?refresh=' + new Date().getTime();
+              }
+            }
+          });
+        });</script>
+    <!-- Google Maps API -->
+   
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBgszAohjQysl0iMw4WYSnc82whXBiBE2k&callback=initMaps"></script>
+
+
+  
+  <script>
+  // Simple share popup script
+  (function() {
+    // Keep track of whether game has ended
+    var gameEnded = false;
+    var shareText = '';
+    
+    // Helper function to get value from global scope
+    function getGlobalValue(varName, defaultValue) {
+      return typeof window[varName] !== 'undefined' ? window[varName] : defaultValue;
+    }
+    
+    // Show the simple share popup
+    function showSimpleSharePopup() {
+      // Get current date in format "Mar 7, 2025"
+      var today = new Date();
+      var dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      
+      // Get game type and metrics
+      var gameType = getGlobalValue('gameType', 'daily');
+      var bestGuessDistance = getGlobalValue('bestGuessDistance', 1000);
+      var totalDistance = getGlobalValue('totalDistance', 5000);
+      
+      // Create share text based on game type
+      if (gameType === 'daily') {
+        shareText = 'I was ' + Math.round(bestGuessDistance) + ' mi away on today\'s GeoWorlder daily challenge! (' + dateStr + ')';
+      } else {
+        shareText = 'I finished the GeoWorlder 10 locations challenge with a total of ' + Math.round(totalDistance) + ' !';
+      }
+      
+      // Set the share text
+      document.getElementById('simpleShareText').textContent = shareText;
+      
+      // Show the popup
+      document.getElementById('simpleSharePopup').style.display = 'block';
+    }
+    
+    // Copy to clipboard
+    function copyToClipboard() {
+      if (!shareText) return;
+      
+      // Try to use the clipboard API
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareText)
+          .then(function() {
+            // Show success
+            var copyBtn = document.getElementById('simpleCopyBtn');
+            var originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            
+            setTimeout(function() {
+              copyBtn.innerHTML = originalText;
+            }, 2000);
+          })
+          .catch(function(err) {
+            console.error('Could not copy text: ', err);
+            alert('Could not copy to clipboard. Your browser may not support this feature.');
+          });
+      } else {
+        // Fallback method
+        var textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          var successful = document.execCommand('copy');
+          if (successful) {
+            var copyBtn = document.getElementById('simpleCopyBtn');
+            var originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            
+            setTimeout(function() {
+              copyBtn.innerHTML = originalText;
+            }, 2000);
+          } else {
+            alert('Could not copy to clipboard. Your browser may not support this feature.');
+          }
+        } catch (err) {
+          console.error('Could not copy text: ', err);
+          alert('Could not copy to clipboard. Your browser may not support this feature.');
+        }
+        
+        document.body.removeChild(textArea);
+      }
+    }
+    
+    // Share on Twitter
+    function shareOnTwitter() {
+      if (!shareText) return;
+      
+      var twitterText = encodeURIComponent(shareText + ' Play GeoWorlder today!');
+      var twitterURL = 'https://twitter.com/intent/tweet?text=' + twitterText;
+      
+      window.open(twitterURL, '_blank');
+    }
+    
+    // Share on Facebook
+    function shareOnFacebook() {
+      if (!shareText) return;
+      
+      var fbURL = 'https://www.facebook.com/sharer/sharer.php?u=' + 
+                  encodeURIComponent(window.location.origin) + 
+                  '&quote=' + encodeURIComponent(shareText);
+      
+      window.open(fbURL, '_blank');
+    }
+    
+    // Set up event listeners once the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Close button
+      document.getElementById('simpleCloseBtn').addEventListener('click', function() {
+        document.getElementById('simpleSharePopup').style.display = 'none';
+      });
+      
+      // Copy button
+      document.getElementById('simpleCopyBtn').addEventListener('click', copyToClipboard);
+      
+      // Twitter button
+      document.getElementById('simpleTwitterBtn').addEventListener('click', shareOnTwitter);
+      
+      // Facebook button
+      document.getElementById('simpleFacebookBtn').addEventListener('click', shareOnFacebook);
+      
+      // Monitor for game completion
+      setInterval(function() {
+        if (!gameEnded) {
+          var guessCount = getGlobalValue('guessCount', 0);
+          var currentLocationIndex = getGlobalValue('currentLocationIndex', 0);
+          var challengeLocations = getGlobalValue('challengeLocations', []);
+          
+          // Check if daily challenge is complete (3 guesses used)
+          if (guessCount >= 3) {
+            gameEnded = true;
+            setTimeout(showSimpleSharePopup, 1500);
+          }
+          
+          // Check if 10 location challenge is complete
+          if (challengeLocations.length > 0 && currentLocationIndex >= 9) {
+            gameEnded = true;
+            setTimeout(showSimpleSharePopup, 1500);
+          }
+        }
+      }, 1000);
+      
+      // Manual trigger for testing (uncomment to test)
+      // window.showSharePopupNow = showSimpleSharePopup;
+    });
+  })();
+  </script>
+</body>
+</html>

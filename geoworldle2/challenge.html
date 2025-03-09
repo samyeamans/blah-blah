@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>
+    // Direct fix for Google Maps initialization issues in challenge.html
+    (function() {
+      // Override the initMaps function before it's called by the Google Maps API
+      window.originalInitMaps = window.initMaps;
+      
+      window.initMaps = function() {
+        // Check if we're on a page that should be refreshed on load
+        const shouldRefresh = (window.location.pathname.includes('challenge.html') || 
+                              window.location.pathname.includes('daily.html'));
+        
+        // Check if this is a fresh load without a refresh parameter
+        if (shouldRefresh && !window.location.search.includes('refresh=')) {
+          // Add refresh parameter and reload
+          window.location.href = window.location.href.split('?')[0] + 
+                                '?refresh=' + new Date().getTime();
+          return; // Stop execution to avoid errors during redirect
+        }
+        
+        // If we're refreshing with the parameter or on another page, proceed with original function
+        if (typeof window.originalInitMaps === 'function') {
+          window.originalInitMaps();
+        }
+        
+        // Add event listeners to all play again buttons after a delay
+        if (shouldRefresh) {
+          setTimeout(function() {
+            const restartButtons = document.querySelectorAll('#play-again, #closeSharePopup, #simpleCloseBtn');
+            restartButtons.forEach(function(button) {
+              if (button) {
+                button.addEventListener('click', function(e) {
+                  window.location.href = window.location.href.split('?')[0] + 
+                                        '?refresh=' + new Date().getTime();
+                });
+              }
+            });
+          }, 1000);
+        }
+      };
+      
+      // Fix for the placeholder image errors
+      document.addEventListener('DOMContentLoaded', function() {
+        // Replace problematic placeholder images
+        const placeholders = document.querySelectorAll('.street-view-placeholder, .map-placeholder');
+        placeholders.forEach(function(el) {
+          // Remove background image
+          el.style.backgroundImage = 'none';
+          // Set simple background color
+          el.style.backgroundColor = el.classList.contains('street-view-placeholder') 
+                                  ? '#f0f0f0' : '#e8f4f8';
+        });
+      });
+      
+      // Update Google Maps script to use async loading
+      document.addEventListener('DOMContentLoaded', function() {
+        // Fix the Google Maps loading warning by forcing the API script to load asynchronously
+        const scripts = document.getElementsByTagName('script');
+        for (let i = 0; i < scripts.length; i++) {
+          const script = scripts[i];
+          if (script.src && script.src.includes('maps.googleapis.com') && !script.async) {
+            // Get current src and save callback
+            const src = script.src;
+            const callback = src.includes('callback=') 
+                          ? src.split('callback=')[1].split('&')[0] 
+                          : 'initMaps';
+            
+            // Create new script element
+            const newScript = document.createElement('script');
+            newScript.src = src;
+            newScript.async = true;
+            
+            // Replace old script if possible
+            if (script.parentNode) {
+              script.parentNode.replaceChild(newScript, script);
+            }
+          }
+        }
+      });
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Location Challenge - GeoWorlder</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <style>
+        /* Make the game interface visible by default on this page */
+        .game-interface {
+            display: block;
+            margin-top: 2rem;
+        }
+        
+        /* Style for street view placeholder */
+        .street-view-placeholder {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #f0f0f0;
+            background-image: url("https://via.placeholder.com/800x500/f0f0f0/888888?text=Street+View");
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+        
+        /* Style for map placeholder */
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #e8f4f8;
+            background-image: url("https://via.placeholder.com/800x500/e8f4f8/2d8fb3?text=World+Map");
+            background-size: cover;
+            background-position: center;
+            z-index: 5;
+        }
+        
+        /* Game content layout */
+        .game-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        
+        .street-view, .map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (min-width: 992px) {
+            .game-content {
+                flex-direction: row;
+            }
+            
+            .street-view, .map-container {
+                width: 50%;
+            }
+        }
+        
+        /* Timer styling */
+        .stat-value#timer {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Updated Navigation -->
+        <nav class="main-nav">
+            <div class="logo">
+                <h1><span>Geo</span>Worlder</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="daily.html">Daily</a>
+                <a href="challenge.html">Challenge</a>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-feedback" id="feedback-btn">Feedback / Report Bugs</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+
+<!-- CSS styles to add to your styles.css file -->
+<style>
+.btn-feedback {
+    background-color: var(--primary-color);
+    color: var(--background);
+    border: none;
+    transition: all var(--transition-fast);
+}
+
+.btn-feedback:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+</style>
+
+<!-- JavaScript to add to your scripts.js file -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Feedback button click event
+    const feedbackBtn = document.getElementById('feedback-btn');
+    if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', function() {
+            // Option 1: Navigate to a feedback page
+            window.location.href = 'contact.html';
+            
+            // Option 2: Open a feedback modal (uncomment to use this instead)
+            // openFeedbackModal();
+        });
+    }
+    
+    // Function to open a feedback modal (if you want to implement this)
+    /*
+    function openFeedbackModal() {
+        // Here you can either create a new modal or reuse your existing modal structure
+        // This is just a placeholder - you would need to implement the actual modal content
+        alert('Feedback form would open here');
+    }
+    */
+});
+</script>
+        <!-- Challenge Header -->
+        <section class="page-header">
+            <div class="logo">
+                <br>
+                <h1><span>10 Location Challenge</span></h1>
+                <p>Race against the clock to identify 10 random locations from around the world!</p>
+                <br>
+                <h1><span>How To Play:</span></h1>
+                <p>🌐 GeoWorlder will automatically generate 10 random locations.</p>
+                <p>🌐 Use the street view to look around and scroll to zoom in or out.</p>
+                <p>🌐 Use the globe view to place your pin.</p>
+                <p>🌐 Click "Make Guess" to lock in your location.</p>
+                <p>🌐 You will recieve 30 seconds for each location to make a guess.</p>
+                <p>🌐 Tip: On the globe, hold command and scroll to zoom in our out. </p>
+                <p>🌐 After all 10 guesses, your total distance will be calculated.</p>
+                <p>🌐 Shoot for the lowest distance possible!</p>
+                <br>
+                <h1><span>Rules:</span></h1>
+                <p>🌐 Don't be that person. Stay on this tab.</p>
+                <p>🌐 Note: If location window is black, locations are still loading. Your timer will not start until the location is loaded.</p>
+
+                
+                
+            </div>
+            <div style="position: absolute; top: 60px; right: 75px; width: 400px;">
+                <img src="assets/GeoWorlder2.png" alt="GeoWorlder Logo" style="width: 100%; height: auto;">
+            </div>
+        </section>
+        
+
+        <!-- Game Interface -->
+        <section class="game-interface" id="game-interface">
+            <div class="game-header">
+                <h2 id="game-title">10 Location Challenge</h2>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Location</span>
+                        <span class="stat-value" id="location-count">1/10</span>
+                    </div>
+                    <div class="stat" id="timer-container">
+                        <span class="stat-label">Time</span>
+                        <span class="stat-value" id="timer">30</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Total Distance</span>
+                        <span class="stat-value" id="total-distance">0 mi</span>
+                    </div>
+                </div>
+                <button class="btn btn-exit" id="exit-game" onclick="window.location.href='index.html'">Exit</button>
+            </div>
+            <div class="game-content">
+                <div class="street-view" id="street-view">
+                    <!-- Street View placeholder until Google Maps API loads -->
+                    <div class="street-view-placeholder">
+                        <i class="fas fa-street-view fa-3x" style="margin-bottom: 10px; color: #555;"></i>
+                        <p style="color: #555; font-weight: bold;">Street View</p>
+                        <p style="color: #777; font-size: 0.9em;">Look around for clues - 30 seconds remaining</p>
+                        <div class="countdown-indicator" style="margin-top: 15px; width: 150px; height: 8px; background: #eee; border-radius: 4px;">
+                            <div style="width: 75%; height: 100%; background: #e74c3c; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    <div class="loading-overlay" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Generating Locations...</p>
+                    </div>
+                </div>
+                <div class="map-container" id="map-container">
+                    <!-- World Map placeholder until Google Maps API loads -->
+                    <div class="map-placeholder">
+                        <div class="guess-instruction" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 8px;">
+                            <i class="fas fa-map-marker-alt fa-2x" style="color: #d33; margin-bottom: 10px;"></i>
+                            <p style="font-weight: bold;">Click on the map to make your guess</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="game-controls">
+                <button class="btn btn-guess" id="make-guess">Make Guess</button>
+                <button class="btn btn-next" id="next-location">Next Location</button>
+            </div>
+        </section>
+
+        <!-- Top Scores Section -->
+        
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2><span>Geo</span>Worlder</h2>
+                    <p>Test your geography knowledge one location at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Game</h3>
+                        <a href="daily.html">Daily Challenge</a>
+                        <a href="challenge.html">10 Location Challenge</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <a href="about.html">About Us</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <a href="terms.html">Terms of Service</a>
+                        <a href="privacy.html">Privacy Policy</a>
+                        <a href="cookies.html">Cookies</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GeoWorlder. All rights reserved.</p>
+                <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i> Back to Top</a>
+            </div>
+        </footer>
+        <!-- Login/Signup Modal (Initially Hidden) -->
+        <div class="modal" id="auth-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="auth-title">Login</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="auth-tabs">
+                        <button class="tab-btn active" data-tab="login">Login</button>
+                        <button class="tab-btn" data-tab="signup">Sign Up</button>
+                    </div>
+                    <div class="auth-form-container">
+                        <form id="login-form" class="auth-form active">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" required>
+                            </div>
+                            <div class="form-options">
+                                <div class="remember-me">
+                                    <input type="checkbox" id="remember">
+                                    <label for="remember">Remember me</label>
+                                </div>
+                                <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Login</button>
+                        </form>
+                        <form id="signup-form" class="auth-form">
+                            <div class="form-group">
+                                <label for="signup-username">Username</label>
+                                <input type="text" id="signup-username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-confirm">Confirm Password</label>
+                                <input type="password" id="signup-confirm" required>
+                            </div>
+                            <div class="form-options">
+                                <div class="terms">
+                                    <input type="checkbox" id="terms">
+                                    <label for="terms">I agree to the <a href="terms.html">Terms of Service</a></label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                        </form>
+                    </div>
+                    <div class="social-login">
+                        <p>Or continue with</p>
+                        <div class="social-buttons">
+                            <button class="btn btn-social google"><i class="fab fa-google"></i> Google</button>
+                            <button class="btn btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script></script>
+    <script src="scripts.js"></script>
+    <!-- Replace YOUR_API_KEY with your actual Google Maps API key when deploying -->
+<script>
+   // Auto-refresh script for challenge.html with Google Maps API fix
+document.addEventListener('DOMContentLoaded', function() {
+  // Function to check if this is the challenge/daily page
+  function isChallengeOrDailyPage() {
+    return window.location.pathname.includes('challenge.html') || 
+           window.location.pathname.includes('daily.html');
+  }
+
+  // Fix for the Google Maps API loading issue
+  function ensureGoogleMapsLoaded(callback, maxAttempts = 20) {
+    let attempts = 0;
+    const checkGoogleMaps = setInterval(function() {
+      attempts++;
+      if (typeof google !== 'undefined' && google.maps) {
+        clearInterval(checkGoogleMaps);
+        callback();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkGoogleMaps);
+        console.log("Google Maps failed to load within expected time");
+      }
+    }, 500); // Check every 500ms
+  }
+
+  // Check if we're on the challenge or daily page
+  if (isChallengeOrDailyPage()) {
+    // Wait until the page has fully loaded including all resources
+    window.addEventListener('load', function() {
+      // Check if this is a fresh visit or a replay request
+      const hasVisited = sessionStorage.getItem('pageVisited');
+      
+      // If this is a fresh visit (not from clicking the back button)
+      if (!hasVisited) {
+        // Set flag in session storage to prevent infinite refresh loops
+        sessionStorage.setItem('pageVisited', 'true');
+        
+        // Force a refresh with a cache-busting parameter
+        window.location.href = window.location.href.split('?')[0] + 
+                                '?refresh=' + new Date().getTime();
+      } else {
+        // Clear the flag to ensure refreshes on new visits
+        sessionStorage.removeItem('pageVisited');
+        
+        // Fix placeholder image errors by replacing with alternative images or local files
+        const placeholders = document.querySelectorAll('.street-view-placeholder, .map-placeholder');
+        placeholders.forEach(placeholder => {
+          // Remove background-image with error URL
+          placeholder.style.backgroundImage = 'none';
+          // Add a simple background color instead
+          placeholder.style.backgroundColor = placeholder.classList.contains('street-view-placeholder') 
+                                            ? '#f0f0f0' : '#e8f4f8';
+        });
+      }
+    });
+    
+    // Handle Play Again buttons after ensuring Google Maps is loaded
+    ensureGoogleMapsLoaded(function() {
+      // Add event listener to the Play Again button
+      const playAgainButtons = document.querySelectorAll('#play-again, #closeSharePopup, #simpleCloseBtn');
+      playAgainButtons.forEach(button => {
+        if (button) {
+          // Remove old event listeners if possible
+          const newButton = button.cloneNode(true);
+          if (button.parentNode) {
+            button.parentNode.replaceChild(newButton, button);
+          }
+          
+          // Add our new event listener
+          newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Force page reload with cache busting
+            window.location.href = window.location.href.split('?')[0] + 
+                                  '?refresh=' + new Date().getTime();
+          });
+        }
+      });
+      
+      // Also handle the next location button for the 10 location challenge
+      const nextLocationBtn = document.getElementById('next-location');
+      if (nextLocationBtn && window.location.pathname.includes('challenge.html')) {
+        // Create new button to clear any existing handlers
+        const newNextBtn = nextLocationBtn.cloneNode(true);
+        if (nextLocationBtn.parentNode) {
+          nextLocationBtn.parentNode.replaceChild(newNextBtn, nextLocationBtn);
+        }
+        
+        newNextBtn.addEventListener('click', function() {
+          // Get current location index
+          const currentIndex = window.currentLocationIndex || 0;
+          
+          // If this is the last location (9th index = 10th location)
+          if (currentIndex >= 9) {
+            // After showing results, force refresh
+            setTimeout(function() {
+              window.location.href = window.location.href.split('?')[0] + 
+                                    '?refresh=' + new Date().getTime();
+            }, 5000); // Give time for showing results
+          }
+        });
+      }
+    });
+  }
+  
+  // Handle refresh when clicking any Play button on the home page
+  if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname === '') {
+    const playButtons = document.querySelectorAll('#play-daily, #play-challenge, #daily-card .btn-mode, #challenge-card .btn-mode');
+    playButtons.forEach(button => {
+      if (button) {
+        const originalHref = button.getAttribute('onclick') || '';
+        if (originalHref.includes('window.location.href')) {
+          // Extract the destination URL
+          const match = originalHref.match(/window\.location\.href\s*=\s*['"]([^'"]+)['"]/);
+          if (match && match[1]) {
+            const destination = match[1];
+            
+            // Replace with a clean new button
+            const newButton = button.cloneNode(true);
+            if (button.parentNode) {
+              button.parentNode.replaceChild(newButton, button);
+            }
+            
+            // Add our click handler
+            newButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              // Clear any previous visit flags
+              sessionStorage.removeItem('pageVisited');
+              // Navigate to the destination
+              window.location.href = destination;
+            });
+          }
+        }
+      }
+    });
+  }
+});
+
+// Update Google Maps API script to use async loading
+document.addEventListener('DOMContentLoaded', function() {
+  // Find the Google Maps script tag
+  const existingMapScript = document.querySelector('script[src*="maps.googleapis.com"]');
+  
+  if (existingMapScript) {
+    // Get the current src and callback
+    const src = existingMapScript.getAttribute('src');
+    
+    // Only replace if it doesn't already have async
+    if (src && !existingMapScript.hasAttribute('async')) {
+      // Create a new script tag with async attribute
+      const newScript = document.createElement('script');
+      newScript.src = src;
+      newScript.async = true;
+      newScript.defer = true;
+      
+      // Replace the old script with the new one
+      if (existingMapScript.parentNode) {
+        existingMapScript.parentNode.replaceChild(newScript, existingMapScript);
+      }
+    }
+  }
+}); </script>
+<script
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBgszAohjQysl0iMw4WYSnc82whXBiBE2k&callback=initMaps"></script>
+
+<!-- Add this code directly to challenge.html just before the closing </body> tag -->
+<script>
+    (function() {
+      // Fix placeholder image errors
+      const placeholderElements = document.querySelectorAll('[style*="via.placeholder.com"]');
+      placeholderElements.forEach(function(element) {
+        // Remove the background image causing the errors
+        element.style.backgroundImage = 'none';
+        // Add a simple color background
+        element.style.backgroundColor = '#f0f0f0';
+      });
+      
+      // Watch for the Google Maps script and ensure it loads properly
+      const checkScript = setInterval(function() {
+        const googleScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (googleScript) {
+          clearInterval(checkScript);
+          
+          // Create a new script element with correct attributes
+          const newScript = document.createElement('script');
+          newScript.src = googleScript.src;
+          newScript.async = true;
+          newScript.defer = true;
+          
+          // Replace the existing script with our new one
+          if (googleScript.parentNode) {
+            googleScript.parentNode.replaceChild(newScript, googleScript);
+          }
+          
+          console.log("Google Maps script has been patched");
+        }
+      }, 100);
+      
+      // Fix the initMaps function to handle errors and refresh the page properly
+      const originalInitMaps = window.initMaps || function() {};
+      window.initMaps = function() {
+        try {
+          // Check if we're on the challenge page and should refresh
+          if (location.pathname.includes('challenge.html') && !location.search.includes('refreshed')) {
+            console.log("Refreshing challenge page...");
+            location.href = location.pathname + '?refreshed=' + Date.now();
+            return;
+          }
+          
+          // Call the original function if we're not refreshing
+          originalInitMaps();
+          
+          // Add event listeners to play again buttons
+          setTimeout(function() {
+            const playAgainButtons = document.querySelectorAll('#play-again, #closeSharePopup, #simpleCloseBtn');
+            playAgainButtons.forEach(function(button) {
+              if (button) {
+                const originalClick = button.onclick;
+                button.onclick = function(e) {
+                  e.preventDefault();
+                  console.log("Play again clicked, refreshing...");
+                  location.reload(true); // Force reload from server
+                  return false;
+                };
+              }
+            });
+          }, 1000);
+        } catch (error) {
+          console.error("Error in initMaps:", error);
+        }
+      };
+      
+      // Define a global function to safely access Google Maps
+      window.safelyInitMaps = function() {
+        // Check if Google Maps is available
+        if (typeof google !== 'undefined' && google.maps) {
+          console.log("Google Maps is available, calling initMaps");
+          window.initMaps();
+        } else {
+          console.log("Google Maps not yet available, waiting...");
+          setTimeout(window.safelyInitMaps, 500);
+        }
+      };
+      
+      // Fix any code that tries to use Google Maps directly
+      document.addEventListener('DOMContentLoaded', function() {
+        // Patch problematic line in scripts.js if needed
+        try {
+          // Replace the problematic line 1580 with a safe version
+          const allScripts = document.querySelectorAll('script');
+          allScripts.forEach(function(script) {
+            if (script.textContent && script.textContent.includes('google.maps')) {
+              // Add a safety wrapper
+              const safeScript = document.createElement('script');
+              safeScript.textContent = `
+                // Safely check for Google Maps
+                function ensureGoogleMapsAvailable(callback, maxAttempts) {
+                  let attempts = 0;
+                  const interval = setInterval(function() {
+                    attempts++;
+                    if (typeof google !== 'undefined' && google.maps) {
+                      clearInterval(interval);
+                      callback();
+                    } else if (maxAttempts && attempts >= maxAttempts) {
+                      clearInterval(interval);
+                      console.error("Google Maps failed to load after " + maxAttempts + " attempts");
+                    }
+                  }, 500);
+                }
+                
+                // Add this before using Google Maps
+                ensureGoogleMapsAvailable(function() {
+                  // Now Google Maps is guaranteed to be available
+                  console.log("Google Maps is now safely available");
+                });
+              `;
+              // Add the safety script to the page
+              document.body.appendChild(safeScript);
+            }
+          });
+        } catch (e) {
+          console.error("Error patching scripts:", e);
+        }
+      });
+      
+      // Call our initializer after the page loads
+      window.addEventListener('load', function() {
+        setTimeout(window.safelyInitMaps, 1000);
+      });
+    })();
+    </script>
+    <script>
+        /**
+         * This script fixes refresh issues on challenge.html without modifying Google Maps loading
+         */
+        
+        // Wait for DOM to be ready before doing anything
+        document.addEventListener('DOMContentLoaded', function() {
+          console.log("DOM content loaded, applying fixes");
+          
+          // Fix placeholder image errors without touching Google Maps
+          const fixPlaceholders = function() {
+            // Find all elements with background images that might be causing errors
+            const styleElements = document.querySelectorAll('style');
+            styleElements.forEach(function(style) {
+              if (style.textContent && style.textContent.includes('via.placeholder.com')) {
+                // Replace the content with a fixed version
+                style.textContent = style.textContent.replace(
+                  /url\(["']https?:\/\/via\.placeholder\.com[^)]*\)/g, 
+                  'none'
+                );
+              }
+            });
+            
+            // Also fix any inline styles
+            const elementsWithBgImage = document.querySelectorAll('[style*="via.placeholder.com"]');
+            elementsWithBgImage.forEach(function(el) {
+              el.style.backgroundImage = 'none';
+              if (el.classList.contains('street-view-placeholder')) {
+                el.style.backgroundColor = '#f0f0f0';
+              } else if (el.classList.contains('map-placeholder')) {
+                el.style.backgroundColor = '#e8f4f8';
+              }
+            });
+            
+            console.log("Placeholder images fixed");
+          };
+        
+          // Apply the placeholder fix
+          fixPlaceholders();
+          
+          // Handle page refreshes on navigation and button clicks
+          const setupRefresh = function() {
+            // Only apply to challenge and daily pages
+            if (!window.location.pathname.includes('challenge.html') && 
+                !window.location.pathname.includes('daily.html')) {
+              return;
+            }
+            
+            // Find all relevant buttons 
+            const refreshButtons = [
+              document.getElementById('play-again'),
+              document.getElementById('closeSharePopup'),
+              document.getElementById('simpleCloseBtn')
+            ];
+            
+            refreshButtons.forEach(function(button) {
+              if (button) {
+                // Save original click handler if there is one
+                const originalHandler = button.onclick;
+                
+                // Add our refresh handler
+                button.onclick = function(e) {
+                  e.preventDefault(); 
+                  console.log("Refresh button clicked");
+                  
+                  // Force a hard refresh of the page
+                  window.location.href = window.location.pathname + 
+                                        '?refresh=' + new Date().getTime();
+                  
+                  return false;
+                };
+              }
+            });
+            
+            console.log("Refresh functionality set up");
+          };
+          
+          // Set up the refresh functionality
+          setupRefresh();
+        });
+        
+        // Add a refresh handler for when the page first loads
+        window.addEventListener('load', function() {
+          // Check if this is a challenge or daily page
+          const isGamePage = window.location.pathname.includes('challenge.html') || 
+                            window.location.pathname.includes('daily.html');
+          
+          // Check if we need to refresh (no refresh parameter and on game page)
+          if (isGamePage && !window.location.search.includes('refresh=')) {
+            console.log("First load detected, refreshing page");
+            
+            // Navigate to the same page with a refresh parameter
+            window.location.href = window.location.pathname + 
+                                  '?refresh=' + new Date().getTime();
+          }
+        });
+        </script>
+        // Simple fix for challenge.html that uses window.location.reload()
+        <script>('DOMContentLoaded', function() {
+          // Observe DOM changes to detect when buttons are added
+          const observer = new MutationObserver(function(mutations) {
+            // Check for relevant buttons after DOM changes
+            checkForButtons();
+          });
+          
+          // Start observing the document body for changes
+          observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+          });
+          
+          // Function to find and modify buttons
+          function checkForButtons() {
+            // Array of button IDs to look for
+            const buttonIds = [
+              'play-again',
+              'closeSharePopup',
+              'simpleCloseBtn',
+              'popupButton',
+              'next-location'
+            ];
+            
+            // Check each button ID
+            buttonIds.forEach(function(id) {
+              const button = document.getElementById(id);
+              if (button && !button.dataset.modified) {
+                // Mark as modified to avoid repeated modifications
+                button.dataset.modified = 'true';
+                
+                // Add our click handler to force refresh
+                button.addEventListener('click', function(e) {
+                  console.log('Button clicked, refreshing page...');
+                  
+                  // Small delay to allow any other click handlers to execute
+                  setTimeout(function() {
+                    // Use the simplest and most reliable method
+                    window.location.reload(true);
+                  }, 100);
+                });
+                
+                console.log('Added refresh handler to ' + id + ' button');
+              }
+            });
+          }
+          
+          // Initial check for buttons
+          checkForButtons();
+          
+          // Also check again after a delay (for buttons added after initial load)
+          setTimeout(checkForButtons, 2000);
+          setTimeout(checkForButtons, 5000);
+        });</script>
+</body>
+</html>

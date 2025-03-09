@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - GeoWorlder</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles for feedback form */
+        .feedback-destination {
+            margin-bottom: 1.5rem;
+            padding: 0.75rem;
+            background-color: var(--background-alt);
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-feedback {
+            background-color: var(--primary-color);
+            color: var(--background);
+            border: none;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-feedback:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Updated Navigation -->
+        <nav class="main-nav">
+            <div class="logo">
+                <h1><span>Geo</span>Worlder</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="daily.html">Daily</a>
+                <a href="challenge.html">Challenge</a>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-feedback" id="feedback-btn">Feedback / Report Bugs</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+        <!-- Contact Us Content -->
+        <section class="contact-section">
+            <div class="section-header">
+                <h2>Contact Us</h2>
+                <p>We'd love to hear from you</p>
+            </div>
+           
+              <!-- Contact Form Container with Final Adjustments -->
+<div class="contact-form-container">
+    <h3 style="margin-bottom: 1.5rem;">Send Us a Message</h3>
+    <p class="feedback-destination" style="margin-bottom: 2rem; color: var(--primary-color);">All feedback will be sent to our email.</p>
+    
+    <!-- Formspree form with dropdown menu and proper styling -->
+    <form class="contact-form" action="https://formspree.io/f/mrbpzozv" method="POST">
+        <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Your Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject">
+                <option value="Game Feedback" selected>Game Feedback</option>
+                <option value="Bug Report">Bug Report</option>
+                <option value="Feature Suggestion">Feature Suggestion</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="message">Your Message</label>
+            <textarea id="message" name="message" rows="6" required></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;">Send Feedback</button>
+    </form>
+    
+    
+</div>
+
+
+
+            </div>
+            
+            
+        </section>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2><span>Geo</span>Worlder</h2>
+                    <p>Test your geography knowledge one location at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Game</h3>
+                        <a href="daily.html">Daily Challenge</a>
+                        <a href="challenge.html">10 Location Challenge</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <a href="about.html">About Us</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <a href="terms.html">Terms of Service</a>
+                        <a href="privacy.html">Privacy Policy</a>
+                        <a href="cookies.html">Cookies</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GeoWorlder. All rights reserved.</p>
+                <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i> Back to Top</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Feedback button click event
+            const feedbackBtn = document.getElementById('feedback-btn');
+            if (feedbackBtn) {
+                feedbackBtn.addEventListener('click', function() {
+                    // Scroll to the contact form
+                    document.querySelector('.contact-form-container').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                });
+            }
+            
+            // Initialize FAQ accordion
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const answer = this.nextElementSibling;
+                    if (answer.style.maxHeight) {
+                        answer.style.maxHeight = null;
+                    } else {
+                        answer.style.maxHeight = answer.scrollHeight + "px";
+                    }
+                });
+            });
+        });
+    </script>
+    <!-- JavaScript for copy-to-clipboard functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add a copy-to-clipboard option for the email address
+        const emailTexts = document.querySelectorAll('.contact-details p');
+        emailTexts.forEach(function(element) {
+            if (element.textContent === 'sammyyeamans23@gmail.com') {
+                const emailContainer = element.parentElement;
+                
+                // Create copy button
+                const copyBtn = document.createElement('button');
+                copyBtn.classList.add('btn', 'btn-small');
+                copyBtn.style.marginTop = '8px';
+                copyBtn.style.padding = '4px 10px';
+                copyBtn.style.fontSize = '0.8rem';
+                copyBtn.textContent = 'Copy Email';
+                
+                // Add click event for copying
+                copyBtn.addEventListener('click', function() {
+                    navigator.clipboard.writeText('sammyyeamans23@gmail.com').then(function() {
+                        const originalText = copyBtn.textContent;
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(function() {
+                            copyBtn.textContent = originalText;
+                        }, 2000);
+                    });
+                });
+                
+                // Add to the page
+                emailContainer.appendChild(copyBtn);
+            }
+        });
+    });
+    </script>
+    <style>
+        /* Additional form consistency styles */
+        .contact-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-form .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .contact-form .form-group input,
+        .contact-form .form-group textarea,
+        .contact-form .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            background-color: var(--background-alt);
+            color: var(--text-color);
+            font-family: var(--font-body);
+        }
+        
+        .contact-form .form-group input:focus,
+        .contact-form .form-group textarea:focus,
+        .contact-form .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(56, 182, 255, 0.2);
+        }
+        
+        .contact-form .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        </style>
+        <style>
+            /* Additional form consistency styles */
+            .contact-form .form-group {
+                margin-bottom: 1.5rem;
+            }
+            
+            .contact-form .form-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            
+            .contact-form .form-group input,
+            .contact-form .form-group textarea,
+            .contact-form .form-group select {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                font-size: 1rem;
+                background-color: var(--background-alt);
+                color: var(--text-color);
+                font-family: var(--font-body);
+            }
+            
+            .contact-form .form-group input:focus,
+            .contact-form .form-group textarea:focus,
+            .contact-form .form-group select:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(56, 182, 255, 0.2);
+            }
+            
+            .contact-form .form-group textarea {
+                resize: vertical;
+                min-height: 120px;
+            }
+            
+            .feedback-destination {
+                margin-bottom: 1.5rem;
+                padding: 0.75rem;
+                background-color: var(--background-alt);
+                border-radius: var(--radius-md);
+                text-align: center;
+                border: 1px solid var(--border-color);
+                color: var(--primary-color);
+            }
+            </style>
+            <!-- Alternatively, if you prefer to add the spacing to the form itself -->
+<style>
+    .contact-form {
+        padding-bottom: 2rem;
+    }
+    </style>
+    <!-- Alternatively, if you prefer to add spacing to the entire container -->
+<style>
+.contact-form-container {
+    padding-top: 2rem;
+}
+</style>
+<!-- Alternative: add padding to the container for more balanced spacing -->
+<style>
+    .contact-form-container {
+        padding-top: 4rem;
+        margin-top: 2rem;
+    }
+    </style>
+</body>
+</html>

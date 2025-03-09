@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookies Policy - GeoWorlder</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Updated Navigation -->
+        <nav class="main-nav">
+            <div class="logo">
+                <h1><span>Geo</span>Worlder</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="daily.html">Daily</a>
+                <a href="challenge.html">Challenge</a>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-feedback" id="feedback-btn">Feedback / Report Bugs</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+<!-- CSS styles to add to your styles.css file -->
+<style>
+.btn-feedback {
+    background-color: var(--primary-color);
+    color: var(--background);
+    border: none;
+    transition: all var(--transition-fast);
+}
+
+.btn-feedback:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+</style>
+
+<!-- JavaScript to add to your scripts.js file -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Feedback button click event
+    const feedbackBtn = document.getElementById('feedback-btn');
+    if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', function() {
+            // Option 1: Navigate to a feedback page
+            window.location.href = 'contact.html';
+            
+            // Option 2: Open a feedback modal (uncomment to use this instead)
+            // openFeedbackModal();
+        });
+    }
+    
+    // Function to open a feedback modal (if you want to implement this)
+    /*
+    function openFeedbackModal() {
+        // Here you can either create a new modal or reuse your existing modal structure
+        // This is just a placeholder - you would need to implement the actual modal content
+        alert('Feedback form would open here');
+    }
+    */
+});
+</script>
+        <!-- Cookies Policy Content -->
+        <section class="legal-section">
+            <div class="section-header">
+                <h2>Cookies Policy</h2>
+                <p>Last Updated: March 1, 2025</p>
+            </div>
+            
+            <div class="legal-content">
+                
+                
+                <div class="legal-text">
+                    <div id="introduction" class="legal-section">
+                        <h3>1. Introduction</h3>
+                        <p>This Cookies Policy explains how GeoWorlder ("we," "us," or "our") uses cookies and similar technologies on our website, mobile application, and services (collectively, the "Service"). This policy should be read alongside our Privacy Policy, which explains how we use your personal information.</p>
+                        <p>By continuing to use our Service, you are agreeing to our use of cookies as described in this policy.</p>
+                    </div>
+                    
+                    <div id="what-are-cookies" class="legal-section">
+                        <h3>2. What Are Cookies</h3>
+                        <p>Cookies are small text files that are placed on your device (computer, tablet, or mobile) when you visit a website. Cookies are widely used to make websites work more efficiently and provide information to website owners.</p>
+                        <p>Cookies allow websites to recognize your device and preferences, remember the items in your shopping cart, and analyze how you use the website to improve your experience.</p>
+                        <p>In addition to cookies, we may also use similar technologies such as:</p>
+                        <ul>
+                            <li><strong>Web beacons:</strong> Small graphic images that allow us to monitor the use of our websites.</li>
+                            <li><strong>Pixel tags:</strong> Tiny transparent images that are embedded in emails to tell us when you've opened them.</li>
+                            <li><strong>Local storage:</strong> A way for websites to store information on your device similar to cookies but with larger storage capacity.</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="cookies-we-use" class="legal-section">
+                        <h3>3. Cookies We Use</h3>
+                        <p>We use the following types of cookies on our Service:</p>
+                        
+                        <h4>3.1 Essential Cookies</h4>
+                        <p>These cookies are necessary for the Service to function properly. They enable basic functions like page navigation, access to secure areas, and game functionality. The website cannot function properly without these cookies.</p>
+                        <table class="cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Cookie Name</th>
+                                    <th>Purpose</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>session_id</td>
+                                    <td>Maintains your session while you use the Service</td>
+                                    <td>Session</td>
+                                </tr>
+                                <tr>
+                                    <td>auth_token</td>
+                                    <td>Keeps you logged in to your account</td>
+                                    <td>30 days</td>
+                                </tr>
+                                <tr>
+                                    <td>csrf_token</td>
+                                    <td>Helps prevent cross-site request forgery attacks</td>
+                                    <td>Session</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4>3.2 Preference Cookies</h4>
+                        <p>These cookies remember your choices and preferences to provide enhanced, personalized features. They may be set by us or by third-party providers whose services we have added to our pages.</p>
+                        <table class="cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Cookie Name</th>
+                                    <th>Purpose</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>language</td>
+                                    <td>Remembers your preferred language</td>
+                                    <td>1 year</td>
+                                </tr>
+                                <tr>
+                                    <td>theme</td>
+                                    <td>Remembers your visual preferences (e.g., dark/light mode)</td>
+                                    <td>1 year</td>
+                                </tr>
+                                <tr>
+                                    <td>game_settings</td>
+                                    <td>Stores your game preferences and settings</td>
+                                    <td>1 year</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4>3.3 Analytics Cookies</h4>
+                        <p>These cookies collect information about how you use our Service, which pages you visit, and if you experience any errors. This helps us improve the performance of our Service and understand user behavior.</p>
+                        <table class="cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Cookie Name</th>
+                                    <th>Purpose</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>_ga</td>
+                                    <td>Google Analytics cookie used to distinguish users</td>
+                                    <td>2 years</td>
+                                </tr>
+                                <tr>
+                                    <td>_gid</td>
+                                    <td>Google Analytics cookie used to distinguish users</td>
+                                    <td>24 hours</td>
+                                </tr>
+                                <tr>
+                                    <td>_gat</td>
+                                    <td>Google Analytics cookie used to throttle request rate</td>
+                                    <td>1 minute</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4>3.4 Marketing Cookies</h4>
+                        <p>These cookies track your online activity to help advertisers deliver more relevant advertising or to limit how many times you see an ad. They can share this information with other organizations or advertisers.</p>
+                        <table class="cookie-table">
+                            <thead>
+                                <tr>
+                                    <th>Cookie Name</th>
+                                    <th>Purpose</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>_fbp</td>
+                                    <td>Facebook pixel cookie for advertising purposes</td>
+                                    <td>3 months</td>
+                                </tr>
+                                <tr>
+                                    <td>ads_prefs</td>
+                                    <td>Stores ad preferences</td>
+                                    <td>1 year</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="third-party-cookies" class="legal-section">
+                        <h3>4. Third-Party Cookies</h3>
+                        <p>In addition to our own cookies, we may also use various third-party cookies to report usage statistics, deliver advertisements, and so on. These cookies may be placed by:</p>
+                        <ul>
+                            <li>Analytics providers (like Google Analytics)</li>
+                            <li>Advertising networks (like Facebook, Google Ads)</li>
+                            <li>Social media platforms (when you share content)</li>
+                            <li>Content delivery networks</li>
+                        </ul>
+                        <p>Please note that these third parties have their own privacy policies and we do not have access to or control over cookies or other technologies they may use. We recommend that you check the third-party websites for more information about their cookies and how to manage them.</p>
+                    </div>
+                    
+                    <div id="managing-cookies" class="legal-section">
+                        <h3>5. Managing Cookies</h3>
+                        <p>Most web browsers allow you to manage your cookie preferences. You can set your browser to refuse cookies, or to alert you when cookies are being sent. The methods for doing so vary from browser to browser, and from version to version.</p>
+                        
+                        <p>You can generally find information about how to manage cookies in the "Help" section of your browser, or in the settings.</p>
+                        
+                    
+                        
+                        <p>Please note that if you choose to block or delete cookies, certain features of our Service may not operate correctly or at all.</p>
+                        
+                        <p>You can also opt out of some third-party cookies directly through the relevant third-party:</p>
+                        <ul>
+                            <li>Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank">https://tools.google.com/dlpage/gaoptout</a></li>
+                            <li>Facebook: <a href="https://www.facebook.com/settings/?tab=ads" target="_blank">https://www.facebook.com/settings/?tab=ads</a></li>
+                        </ul>
+                        
+                        <p>You can also visit the following websites to learn more about cookies and how you can manage them:</p>
+                        <ul>
+                            <li><a href="https://www.aboutcookies.org/" target="_blank">AboutCookies.org</a></li>
+                            <li><a href="https://www.youronlinechoices.eu/" target="_blank">Your Online Choices (EU)</a></li>
+                            <li><a href="https://www.networkadvertising.org/choices/" target="_blank">Network Advertising Initiative (US)</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div id="changes" class="legal-section">
+                        <h3>6. Changes to Cookies Policy</h3>
+                        <p>We may update this Cookies Policy from time to time to reflect changes in technology, regulation, or our business practices. Any changes will become effective when we post the revised policy on our Service. We will notify you of any material changes by posting a notice on our website or through other communication channels.</p>
+                        <p>We encourage you to review this policy periodically to stay informed about our use of cookies.</p>
+                    </div>
+                    
+                   
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2><span>Geo</span>Worlder</h2>
+                    <p>Test your geography knowledge one location at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Game</h3>
+                        <a href="daily.html">Daily Challenge</a>
+                        <a href="challenge.html">10 Location Challenge</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <a href="about.html">About Us</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <a href="terms.html">Terms of Service</a>
+                        <a href="privacy.html">Privacy Policy</a>
+                        <a href="cookies.html">Cookies</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GeoWorlder. All rights reserved.</p>
+                <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i> Back to Top</a>
+            </div>
+        </footer>
+
+        <!-- Login/Signup Modal (Initially Hidden) -->
+        <div class="modal" id="auth-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="auth-title">Login</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="auth-tabs">
+                        <button class="tab-btn active" data-tab="login">Login</button>
+                        <button class="tab-btn" data-tab="signup">Sign Up</button>
+                    </div>
+                    <div class="auth-form-container">
+                        <form id="login-form" class="auth-form active">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" required>
+                            </div>
+                            <div class="form-options">
+                                <div class="remember-me">
+                                    <input type="checkbox" id="remember">
+                                    <label for="remember">Remember me</label>
+                                </div>
+                                <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Login</button>
+                        </form>
+                        <form id="signup-form" class="auth-form">
+                            <div class="form-group">
+                                <label for="signup-username">Username</label>
+                                <input type="text" id="signup-username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-confirm">Confirm Password</label>
+                                <input type="password" id="signup-confirm" required>
+                            </div>
+                            <div class="form-options">
+                                <div class="terms">
+                                    <input type="checkbox" id="terms">
+                                    <label for="terms">I agree to the <a href="terms.html">Terms of Service</a></label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                        </form>
+                    </div>
+                    <div class="social-login">
+                        <p>Or continue with</p>
+                        <div class="social-buttons">
+                            <button class="btn btn-social google"><i class="fab fa-google"></i> Google</button>
+                            <button class="btn btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - GeoWorlder</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+       <!-- Updated Navigation -->
+       <nav class="main-nav">
+        <div class="logo">
+            <h1><span>Geo</span>Worlder</h1>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="daily.html">Daily</a>
+            <a href="challenge.html">Challenge</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="btn btn-feedback" id="feedback-btn">Feedback / Report Bugs</button>
+        </div>
+        <div class="mobile-menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+
+<!-- CSS styles to add to your styles.css file -->
+<style>
+.btn-feedback {
+    background-color: var(--primary-color);
+    color: var(--background);
+    border: none;
+    transition: all var(--transition-fast);
+}
+
+.btn-feedback:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+</style>
+
+<!-- JavaScript to add to your scripts.js file -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Feedback button click event
+    const feedbackBtn = document.getElementById('feedback-btn');
+    if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', function() {
+            // Option 1: Navigate to a feedback page
+            window.location.href = 'contact.html';
+            
+            // Option 2: Open a feedback modal (uncomment to use this instead)
+            // openFeedbackModal();
+        });
+    }
+    
+    // Function to open a feedback modal (if you want to implement this)
+    /*
+    function openFeedbackModal() {
+        // Here you can either create a new modal or reuse your existing modal structure
+        // This is just a placeholder - you would need to implement the actual modal content
+        alert('Feedback form would open here');
+    }
+    */
+});
+</script>
+        <!-- Terms of Service Content -->
+        <section class="legal-section">
+            <div class="section-header">
+                <h2>Terms of Service</h2>
+                <p>Last Updated: March 1, 2025</p>
+            </div>
+            
+           
+                <div class="legal-text">
+                    <div id="introduction" class="legal-section">
+                        <h3>1. Introduction</h3>
+                        <p>Welcome to GeoWorlder. These Terms of Service ("Terms") govern your access to and use of the GeoWorlder website, mobile application, and services (collectively, the "Service"). By accessing or using the Service, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the Service.</p>
+                        <p>GeoWorlder is owned and operated by GeoWorlder, Inc. ("we," "us," or "our"). We reserve the right to modify these Terms at any time, with or without notice to you. Your continued use of the Service after any such modification constitutes your acceptance of the modified Terms.</p>
+                    </div>
+                    
+                    <div id="accounts" class="legal-section">
+                        <h3>2. User Accounts</h3>
+                        <p>To access certain features of the Service, you may be required to create a user account. You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate, current, and complete.</p>
+                        <p>You are responsible for safeguarding your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.</p>
+                        <p>We reserve the right to disable your account at any time, including if we believe that you have violated these Terms.</p>
+                    </div>
+                    
+                    <div id="content" class="legal-section">
+                        <h3>3. User Content</h3>
+                        <p>The Service may allow you to post, link, store, share, or otherwise make available certain information, text, graphics, videos, or other material ("User Content"). You retain ownership of any intellectual property rights that you hold in your User Content.</p>
+                        <p>By posting User Content on or through the Service, you grant us a worldwide, non-exclusive, royalty-free license to use, copy, modify, publish, display, and distribute that User Content in connection with the Service and our business operations.</p>
+                        <p>You represent and warrant that your User Content does not violate any third-party rights, including intellectual property rights and privacy rights, and that it complies with these Terms and all applicable laws and regulations.</p>
+                    </div>
+                    
+                    <div id="conduct" class="legal-section">
+                        <h3>4. User Conduct</h3>
+                        <p>You agree not to use the Service:</p>
+                        <ul>
+                            <li>In any way that violates any applicable federal, state, local, or international law or regulation.</li>
+                            <li>To harass, abuse, harm, defame, or otherwise infringe on the rights of others.</li>
+                            <li>To impersonate any person or entity or falsely state or otherwise misrepresent your affiliation with a person or entity.</li>
+                            <li>To engage in any activity that interferes with or disrupts the Service or the servers and networks connected to the Service.</li>
+                            <li>To attempt to gain unauthorized access to the Service, other users' accounts, or computer systems or networks connected to the Service.</li>
+                            <li>To use any automated means to access the Service or collect any information from the Service.</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="intellectual-property" class="legal-section">
+                        <h3>5. Intellectual Property</h3>
+                        <p>The Service and its original content, features, and functionality are owned by GeoWorlder, Inc. and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.</p>
+                        <p>You may not copy, modify, create derivative works of, publicly display, publicly perform, republish, or transmit any of the material on our Service, or distribute or otherwise use the Service in any way for any public or commercial purpose without our prior written consent.</p>
+                    </div>
+                    
+                    <div id="disclaimer" class="legal-section">
+                        <h3>6. Disclaimer of Warranties</h3>
+                        <p>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.</p>
+                        <p>WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED OR ERROR-FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT THE SERVICE OR THE SERVERS THAT MAKE IT AVAILABLE ARE FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.</p>
+                    </div>
+                    
+                    <div id="limitation" class="legal-section">
+                        <h3>7. Limitation of Liability</h3>
+                        <p>IN NO EVENT WILL WE, OUR AFFILIATES, OR THEIR LICENSORS, SERVICE PROVIDERS, EMPLOYEES, AGENTS, OFFICERS, OR DIRECTORS BE LIABLE FOR DAMAGES OF ANY KIND, UNDER ANY LEGAL THEORY, ARISING OUT OF OR IN CONNECTION WITH YOUR USE, OR INABILITY TO USE, THE SERVICE, INCLUDING ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES.</p>
+                    </div>
+                    
+                    <div id="termination" class="legal-section">
+                        <h3>8. Termination</h3>
+                        <p>We may terminate or suspend your account and access to the Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach these Terms.</p>
+                        <p>Upon termination, your right to use the Service will immediately cease. If you wish to terminate your account, you may simply discontinue using the Service or contact us to request account deletion.</p>
+                    </div>
+                    
+                    <div id="changes" class="legal-section">
+                        <h3>9. Changes to Terms</h3>
+                        <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide notice of any changes by posting the new Terms on this page and updating the "Last Updated" date at the top.</p>
+                        <p>Your continued use of the Service after any such changes constitutes your acceptance of the new Terms. Please review these Terms periodically for changes.</p>
+                    </div>
+                    
+                    <div id="governing-law" class="legal-section">
+                        <h3>10. Governing Law</h3>
+                        <p>These Terms shall be governed by and construed in accordance with the laws of the United States of America, without regard to its conflict of law provisions.</p>
+                        <p>Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect.</p>
+                    </div>
+                    
+                    
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2><span>Geo</span>Worlder</h2>
+                    <p>Test your geography knowledge one location at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Game</h3>
+                        <a href="daily.html">Daily Challenge</a>
+                        <a href="challenge.html">10 Location Challenge</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <a href="about.html">About Us</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <a href="terms.html">Terms of Service</a>
+                        <a href="privacy.html">Privacy Policy</a>
+                        <a href="cookies.html">Cookies</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GeoWorlder. All rights reserved.</p>
+                <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i> Back to Top</a>
+            </div>
+        </footer>
+
+        <!-- Login/Signup Modal (Initially Hidden) -->
+        <div class="modal" id="auth-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="auth-title">Login</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="auth-tabs">
+                        <button class="tab-btn active" data-tab="login">Login</button>
+                        <button class="tab-btn" data-tab="signup">Sign Up</button>
+                    </div>
+                    <div class="auth-form-container">
+                        <form id="login-form" class="auth-form active">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" required>
+                            </div>
+                            <div class="form-options">
+                                <div class="remember-me">
+                                    <input type="checkbox" id="remember">
+                                    <label for="remember">Remember me</label>
+                                </div>
+                                <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Login</button>
+                        </form>
+                        <form id="signup-form" class="auth-form">
+                            <div class="form-group">
+                                <label for="signup-username">Username</label>
+                                <input type="text" id="signup-username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-confirm">Confirm Password</label>
+                                <input type="password" id="signup-confirm" required>
+                            </div>
+                            <div class="form-options">
+                                <div class="terms">
+                                    <input type="checkbox" id="terms">
+                                    <label for="terms">I agree to the <a href="terms.html">Terms of Service</a></label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                        </form>
+                    </div>
+                    <div class="social-login">
+                        <p>Or continue with</p>
+                        <div class="social-buttons">
+                            <button class="btn btn-social google"><i class="fab fa-google"></i> Google</button>
+                            <button class="btn btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts.js"></script>
+</body>
+</html>
